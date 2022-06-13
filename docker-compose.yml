@@ -1,0 +1,41 @@
+version: "3.4"
+
+networks:
+  rabbit-test:
+    driver: bridge
+
+services:
+  publisher_api:
+    image: my_publisher_api:latest
+    build:
+      context: ./publisher_api
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "65435:65435"
+    networks:
+      - rabbit-test
+
+  worker:
+    image: my_worker:latest
+    depends_on:
+      - "publisher_api"
+      - "rabbitmq"
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - rabbit-test
+
+  rabbitmq: # login guest:guest
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    labels:
+      NAME: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      - "5671:5671"
+    networks:
+      - rabbit-test
